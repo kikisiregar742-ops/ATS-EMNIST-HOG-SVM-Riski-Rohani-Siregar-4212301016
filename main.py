@@ -1,10 +1,3 @@
-
-"""
-EMNIST Letters Classification (HOG + SVM)
-Evaluasi: 13.000 data (26 huruf x 500 sample per kelas)
-Metode: Leave-One-Out Cross Validation (LOOCV)
-Output: Folder 'result' 
-"""
 import os
 import time
 import numpy as np
@@ -22,12 +15,10 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 
-
-# =========================================================
 # 1. Load & Sampling Data
 # =========================================================
 def load_and_sample_data(filepath, n_samples_per_class=500, n_classes=26, seed=42):
-    print("Loading dataset...")
+    print("Loading Dataset")
     df = pd.read_csv(filepath)
     labels = df.iloc[:, 0].values
     pixels = df.iloc[:, 1:].values
@@ -50,12 +41,10 @@ def load_and_sample_data(filepath, n_samples_per_class=500, n_classes=26, seed=4
     print(f"\nTotal samples: {len(X)}")
     return X, y
 
-
-# =========================================================
 # 2. Ekstraksi Fitur HOG
 # =========================================================
 def extract_hog_features(images):
-    print("\nExtracting HOG features...")
+    print("\nExtracting HOG Features")
     features = []
     for img in tqdm(images):
         img_norm = img / 255.0
@@ -64,8 +53,7 @@ def extract_hog_features(images):
         features.append(fd)
     return np.array(features)
 
-
-def visualize_hog(image, out_path="result/hog_visualization.png"):
+def visualize_hog(image, out_path="result/Hog_Visualization.png"):
     img_norm = image / 255.0
     fd, hog_img = hog(img_norm, orientations=9, pixels_per_cell=(8, 8),
                       cells_per_block=(2, 2), visualize=True, channel_axis=None)
@@ -84,14 +72,12 @@ def visualize_hog(image, out_path="result/hog_visualization.png"):
     plt.savefig(out_path, dpi=150)
     plt.close()
 
-
-# =========================================================
 # 3. Evaluasi Model (Leave-One-Out Cross Validation)
 # =========================================================
 def loocv_evaluation(X, y, svm_params, max_loops=None):
     total_samples = len(X)
     limit = max_loops or total_samples  
-    print(f"\nStarting Leave-One-Out Cross Validation (Total {total_samples} samples, limit {limit})...")
+    print(f"\nStarting LOOCV Validation (Total {total_samples} samples, limit {limit})...")
 
     loo = LeaveOneOut()
     y_true, y_pred = [], []
@@ -114,7 +100,6 @@ def loocv_evaluation(X, y, svm_params, max_loops=None):
     print(f"\nLOOCV selesai ({len(y_true)} iterasi) dalam {elapsed/60:.2f} menit.")
     return np.array(y_true), np.array(y_pred)
 
-# =========================================================
 # 4. Simpan & Tampilkan Hasil
 # =========================================================
 def save_results(y_true, y_pred, out_dir="result"):
@@ -127,10 +112,10 @@ def save_results(y_true, y_pred, out_dir="result"):
 
     # Simpan ke CSV
     pd.DataFrame([{"Accuracy": acc, "Precision": prec, "F1_Score": f1}]).to_csv(
-        os.path.join(out_dir, "result_summary.csv"), index=False
+        os.path.join(out_dir, "Performance_Matrix.csv"), index=False
     )
     pd.DataFrame({"True_Label": y_true, "Predicted_Label": y_pred}).to_csv(
-        os.path.join(out_dir, "result_detail.csv"), index=False
+        os.path.join(out_dir, "Prediction_Log.csv"), index=False
     )
 
     # Simpan confusion matrix
@@ -142,13 +127,12 @@ def save_results(y_true, y_pred, out_dir="result"):
     plt.xlabel("Predicted")
     plt.ylabel("True")
     plt.tight_layout()
-    conf_path = os.path.join(out_dir, "confusion_matrix.png")
+    conf_path = os.path.join(out_dir, "Confusion_Matrix.png")
     plt.savefig(conf_path, dpi=150)
     plt.close()
 
     print(f"\nAccuracy : {acc:.4f}\nPrecision: {prec:.4f}\nF1-Score : {f1:.4f}")
     return acc, prec, f1, conf_path
-
 
 def show_results_window(acc, prec, f1, conf_img_path):
     root = tk.Tk()
@@ -172,8 +156,6 @@ def show_results_window(acc, prec, f1, conf_img_path):
     ttk.Button(root, text="Tutup", command=root.destroy).pack(pady=10)
     root.mainloop()
 
-
-# =========================================================
 # 5. Main Program
 # =========================================================
 def main():
@@ -182,7 +164,7 @@ def main():
     max_loocv_iter = 13000            
     print("="*70)
     print("EMNIST LETTERS CLASSIFICATION - 13.000 DATA (LOOCV)")
-    print("Metode: HOG Feature + SVM (RBF) + Leave-One-Out Cross Validation")
+    print("Metode: HOG Feature + SVM (RBF) + LOOCV Validation")
     print("="*70)
 
     # 1. Load data (13.000 sample)
@@ -196,11 +178,11 @@ def main():
         ax.set_title(chr(64 + y[i]))
         ax.axis("off")
     plt.tight_layout()
-    plt.savefig("result/sample_images.png", dpi=150)
+    plt.savefig("result/Sample_Images.png", dpi=150)
     plt.close()
 
     # 3. Visualisasi HOG satu contoh
-    visualize_hog(X[0], "result/hog_visualization.png")
+    visualize_hog(X[0], "result/Hog_Visualization.png")
 
     # 4. Ekstraksi fitur HOG
     X_feat = extract_hog_features(X)
